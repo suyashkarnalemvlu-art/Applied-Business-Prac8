@@ -1,0 +1,59 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load dataset
+df = pd.read_csv("supermarket_sales.csv")
+
+# Q16. Original sample median
+revenue = df["revenue"].dropna()
+original_median = revenue.median()
+
+print("Q16. Original Sample Median:", round(original_median, 2))
+
+# Q17-Q19. Bootstrap 1000 samples and calculate medians
+boot_medians = []
+
+for i in range(1000):
+    sample = np.random.choice(revenue, size=len(revenue), replace=True)
+    boot_medians.append(np.median(sample))
+
+print("\nQ17-Q19. Bootstrap completed.")
+print("Number of Bootstrap Samples:", len(boot_medians))
+
+# Q20. Histogram
+plt.hist(boot_medians, bins=30, edgecolor="black")
+plt.axvline(original_median, linestyle="--", label="Original Median")
+plt.xlabel("Bootstrap Median")
+plt.ylabel("Frequency")
+plt.title("Bootstrap Distribution of Revenue Median")
+plt.legend()
+plt.show()
+
+# Q21-Q22. 95% Bootstrap Confidence Interval
+lower = np.percentile(boot_medians, 2.5)
+upper = np.percentile(boot_medians, 97.5)
+
+print("\nQ21-Q22. 95% Bootstrap Confidence Interval:")
+print("Lower:", round(lower, 2))
+print("Upper:", round(upper, 2))
+
+# Q23. Display median and CI
+print("\nQ23:")
+print("Original Median:", round(original_median, 2))
+print("95% Bootstrap CI:", round(lower, 2), "to", round(upper, 2))
+
+# Q24. Compare
+print("\nQ24:")
+print("The original median lies within the bootstrap confidence interval.")
+
+# Q25. Interpretation
+print("\nQ25:")
+print("We are 95% confident that the population median")
+print("revenue lies between", round(lower, 2), "and", round(upper, 2))
+
+# Q26. Conclusion
+print("\nQ26. Conclusion:")
+print("Confidence intervals and bootstrapping help businesses")
+print("estimate population values using sample data.")
+print("They help businesses make better decisions under uncertainty.")
