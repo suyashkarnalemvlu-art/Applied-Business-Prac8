@@ -1,0 +1,92 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+from statsmodels.stats.proportion import proportion_confint
+
+# Q1. Load dataset
+df = pd.read_csv("supermarket_sales.csv")
+
+# Q2. First 5 records and size
+print("Q2:")
+print(df.head())
+print("Size:", df.shape)
+
+# Q3 & Q4. Revenue and missing values
+revenue = df["revenue"].dropna()
+print("\nQ4. Missing values:", df["revenue"].isnull().sum())
+
+# Q5. Sample statistics
+n = len(revenue)
+mean = revenue.mean()
+std = revenue.std()
+
+print("\nQ5:")
+print("Sample Size:", n)
+print("Mean:", round(mean, 2))
+print("Standard Deviation:", round(std, 2))
+
+# Q6-Q8. Confidence Intervals
+cis = {}
+for level in [90, 95, 99]:
+    ci = stats.t.interval(
+        level/100,
+        df=n-1,
+        loc=mean,
+        scale=std/np.sqrt(n)
+    )
+    cis[level] = ci
+    print(f"\nQ{level}% Confidence Interval:", 
+          round(ci[0], 2), "to", round(ci[1], 2))
+
+# Q9. Confidence interval table
+table = pd.DataFrame(cis, index=["Lower", "Upper"]).T
+print("\nQ9. CI Table:")
+print(table.round(2))
+
+# Q10. Comparison
+print("\nQ10: Higher confidence level gives a wider interval.")
+
+# Q11. Visualization
+plt.errorbar(
+    [90, 95, 99],
+    [mean, mean, mean],
+    yerr=[
+        [mean-cis[x][0] for x in [90,95,99]],
+        [cis[x][1]-mean for x in [90,95,99]]
+    ],
+    fmt='o',
+    capsize=5
+)
+plt.axhline(mean, linestyle='--', label="Sample Mean")
+plt.xlabel("Confidence Level")
+plt.ylabel("Revenue")
+plt.title("Revenue Confidence Intervals")
+plt.legend()
+plt.show()
+
+# Q12. 95% Interpretation
+print("\nQ12:")
+print("95% CI means the true average revenue is expected")
+print("to lie between", round(cis[95][0],2), "and", round(cis[95][1],2))
+
+# Q13. Customer proportions
+prop = df["customer_type"].value_counts(normalize=True)
+print("\nQ13. Customer Proportions:")
+print((prop*100).round(2), "%")
+
+# Q14. 95% CI for Member proportion
+members = (df["customer_type"] == "Member").sum()
+total = df["customer_type"].notna().sum()
+member_prop = members / total
+ci_prop = proportion_confint(members, total, alpha=0.05)
+
+print("\nQ14:")
+print("Member Proportion:", round(member_prop*100, 2), "%")
+print("95% CI:", round(ci_prop[0]*100, 2), "% to",
+round(ci_prop[1]*100, 2), "%")
+
+# Q15. Interpretation
+print("\nQ15:")
+print("We are 95% confident that the population proportion")
+print("of Member customers lies within the above interval.")
